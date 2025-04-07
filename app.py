@@ -65,7 +65,10 @@ if submit and statement.strip() != "":
             )
             result = response.choices[0].message.content.strip()
             st.success("✅ Classification Complete")
-            st.markdown(f"### 🔍 Result")
-{result}")
+            st.markdown(f"""
+### 🔍 Result  
+{result}
+""")
+
         except Exception as e:
             st.error(f"Error: {e}")
