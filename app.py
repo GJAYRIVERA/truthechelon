@@ -50,7 +50,8 @@ Propaganda, Emotional Amplification, Harmful Generalization, Religious Literalis
 Now classify this:
 
 Statement: "{statement}"
-""""
+"""
+
 
 # Process input
 if submit and statement.strip() != "":
