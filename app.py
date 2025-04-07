@@ -7,24 +7,26 @@ def check_laws(statement):
     laws_triggered = []
     s = statement.lower()
 
-    # LAW 1: Opinion statement ("I think", "I believe", etc.)
+    # LAW 1 and LAW 3 for Opinion Statement
     if any(phrase in s for phrase in ["i think", "i believe", "in my opinion", "personally", "i feel"]):
-        laws_triggered.append("LAW 1: Opinion Statement")
+        laws_triggered.append("LAW 1")  # Opinion statement
+        laws_triggered.append("LAW 3")  # Emotional framing law
     
-    # LAW 2: Question is being asked
+    # LAW 6 for questions
     if statement.strip().endswith("?"):
-        laws_triggered.append("LAW 2: Question Asked")
+        laws_triggered.append("LAW 6")
     
-    # LAW 3: Repetition doesn't increase truth
+    # LAW 7 for repetitive statements or generalizations
     if "again and again" in s or "everyone says" in s:
-        laws_triggered.append("LAW 3: Repetition Doesn't Increase Truth")
+        laws_triggered.append("LAW 7")
     
-    return laws_triggered if laws_triggered else []
+    return laws_triggered if laws_triggered else ["None"]
+
 
 def classify_statement(statement):
     s = statement.lower()
     
-    # Misused Lie - Obama is Muslim
+    # Classification logic for known statements
     if "obama is a muslim" in s:
         return {
             "echelon": "Misused Lie",
@@ -32,68 +34,29 @@ def classify_statement(statement):
             "explanation": "This statement disguises a disproven claim as opinion. It has been widely circulated in misinformation cycles.",
             "laws": check_laws(statement)
         }
-    
-    # Misused Lie - Earth is flat
-    elif "earth is flat" in s:
-        return {
-            "echelon": "Misused Lie",
-            "subtype": "Scientific Error",
-            "explanation": "This statement is scientifically false. The Earth has been proven to be round.",
-            "laws": check_laws(statement)
-        }
-    
-    # Absolute False - I am a dragon, or I gave birth to the moon
-    elif "i am a dragon" in s or "i gave birth to the moon" in s:
+    if "i am a dragon" in s or "i gave birth to the moon" in s:
         return {
             "echelon": "Absolute False",
             "subtype": "Fantasy Claim",
-            "explanation": "This statement is detached from reality and is considered a fantasy claim.",
+            "explanation": "This statement is detached from reality and contains fantastical or impossible elements.",
             "laws": check_laws(statement)
         }
-    
-    # Exaggerated Truth - Capitalism is a weapon
-    elif "capitalism is a weapon" in s:
+    if "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
             "subtype": "Cultural Metaphor",
-            "explanation": "This exaggerates the relationship between fatigue and capitalism as a metaphor, amplifying the critique.",
+            "explanation": "This exaggerates a concept for rhetorical effect, tying fatigue to capitalism symbolically.",
             "laws": check_laws(statement)
         }
 
-    # Misused Lie - Vaccines contain demons (this should trigger as Misused Lie or Propaganda)
-    elif "vaccines contain demons" in s:
-        return {
-            "echelon": "Misused Lie",
-            "subtype": "Propaganda",
-            "explanation": "This is a false and dangerous claim often used in misinformation cycles.",
-            "laws": check_laws(statement)
-        }
-
-    # Basic Truth for statements about "my mom is my biological mom"
-    elif "my mom is my biological mom" in s:
-        return {
-            "echelon": "Basic Truth",
-            "subtype": "Factual Statement",
-            "explanation": "This is a basic truth about one's biological mother. Can be verified through biological testing.",
-            "laws": check_laws(statement)
-        }
-
-    # Absolute Truth - Statements that are universally verifiable, like "My mom gave birth to me."
-    elif "my mom gave birth to me" in s:
-        return {
-            "echelon": "Absolute Truth",
-            "subtype": "Historical Truth",
-            "explanation": "This statement is verifiable through historical or personal accounts.",
-            "laws": check_laws(statement)
-        }
-    
-    # Default case: Always return the closest possible echelon
+    # Default result when no classification matches
     return {
         "echelon": "Truth",
-        "subtype": "Unspecified",  # Will refine this to a proper classification
-        "explanation": "Statement does not match a predefined classification. Needs reevaluation.",
+        "subtype": "Unspecified",
+        "explanation": "No specific classification matched. Statement may need reevaluation.",
         "laws": check_laws(statement)
     }
+
 
 # ---- UI ----
 
@@ -125,13 +88,13 @@ submit = st.button("🧪 Classify Statement")
 # Process input if button is clicked
 if submit and statement.strip():
     result = classify_statement(statement)
-    
     st.success("✅ Classification Complete")
     st.header("🔍 Result")
     st.markdown(f"**Echelon:** {result['echelon']}")
     st.markdown(f"**Subtype:** {result['subtype']}")
     st.markdown(f"**Explanation:** {result['explanation']}")
-    st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}")
+    st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}") 
+
     
     # Save the statement in session state to persist
     st.session_state.input_text = statement
