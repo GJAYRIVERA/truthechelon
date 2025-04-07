@@ -27,6 +27,15 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
+    # Earth is flat (scientifically false)
+    elif "earth is flat" in s:
+        return {
+            "echelon": "Misused Lie",
+            "subtype": "Scientific Error",
+            "explanation": "This statement is scientifically false. The Earth has been proven to be round.",
+            "laws": check_laws(statement)
+        }
+    
     # Check for fantastical statements like "i am a dragon" or "i gave birth to the moon"
     elif "i am a dragon" in s or "i gave birth to the moon" in s:
         return {
@@ -36,7 +45,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
-    # Check for exaggerated truths (e.g. "capitalism is a weapon")
+    # Exaggerated Truth (like "capitalism is a weapon")
     elif "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
@@ -68,17 +77,33 @@ example_statements = [
     "In my opinion, vaccines contain demons"
 ]
 
-# Choose a random placeholder from the list of examples
-placeholder = random.choice(example_statements)
-statement = st.text_area("🗣️ Enter a public statement", placeholder=placeholder)
+# Ensure session state stores the user's input and provide a default statement
+if "input_text" not in st.session_state:
+    st.session_state.input_text = random.choice(example_statements)
+
+# Allow user to input their statement and check if button is clicked
+statement = st.text_area("🗣️ Enter a public statement", value=st.session_state.input_text)
+
+# Classify button
 submit = st.button("🧪 Classify Statement")
 
+# Process input if button is clicked
 if submit and statement.strip():
     result = classify_statement(statement)
+    
     st.success("✅ Classification Complete")
     st.header("🔍 Result")
     st.markdown(f"**Echelon:** {result['echelon']}")
     st.markdown(f"**Subtype:** {result['subtype']}")
     st.markdown(f"**Explanation:** {result['explanation']}")
     st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}")
+    
+    # Save the statement in session state to persist
+    st.session_state.input_text = statement
+
+# Button to get a new random example statement
+if st.button("Get New Example"):
+    new_example = random.choice(example_statements)
+    st.session_state.input_text = new_example  # Update session state with a new example
+    st.text_area("🗣️ Enter a public statement", value=new_example, height=100)
 
