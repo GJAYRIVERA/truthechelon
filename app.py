@@ -65,7 +65,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
 
-    }
+    
 
 
 # ---- UI ----
