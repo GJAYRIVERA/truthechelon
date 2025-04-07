@@ -1,6 +1,4 @@
-# Rebuilding complete working app.py including the latest patch (structured output + law alerts + limits)
 
-full_app_code = '''
 import streamlit as st
 import openai
 import os
@@ -55,7 +53,7 @@ if usage_data["global_count"] >= GLOBAL_DAILY_LIMIT:
 
 # Build classification prompt
 def build_prompt(statement):
-    return f\"""You are the official classifier for the Truth Echelon Framework, a structural typology for public statements.
+    return f"""You are the official classifier for the Truth Echelon Framework, a structural typology for public statements.
 
 You must classify every input into:
 - One of 12 official Echelons
@@ -87,11 +85,11 @@ LAW 7: Repetition doesn’t make something truer.
 Now classify the following public statement with precision and law awareness:
 
 Statement: "{statement}"
-\"""
+"""
 
 
 # Interface
-statement = st.text_area("🗣️ Enter a public statement", placeholder="e.g., The sky is blue, UFOs are real", height=120)
+statement = st.text_area("🗣️ Enter a public statement", placeholder="e.g., God said vaccines are poison", height=120)
 submit = st.button("🧪 Classify Statement")
 
 if submit and statement.strip() != "":
@@ -105,7 +103,7 @@ if submit and statement.strip() != "":
             )
             result = response.choices[0].message.content.strip()
             st.success("✅ Classification Complete")
-            st.markdown(f"### 🔍 Result\\n{result}")
+            st.markdown(f"### 🔍 Result\n{result}")
             st.session_state.user_count += 1
             usage_data["global_count"] += 1
             save_usage(usage_data)
@@ -113,10 +111,3 @@ if submit and statement.strip() != "":
                 st.session_state.locked = True
         except Exception as e:
             st.error(f"⚠️ API error: {e}")
-'''
-
-from pathlib import Path
-app_path = Path("/mnt/data/app.py")
-app_path.write_text(full_app_code)
-
-"✅ Fully rebuilt `app.py` with limits, structured classification, and Truth Echelon law alerts is ready. Download and re-upload to your repo."
