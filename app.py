@@ -25,8 +25,8 @@ def check_laws(statement):
 
 def classify_statement(statement):
     s = statement.lower()
-    
-    # Classification logic for known statements
+
+    # Check for known problematic or special cases
     if "obama is a muslim" in s:
         return {
             "echelon": "Misused Lie",
@@ -41,6 +41,13 @@ def classify_statement(statement):
             "explanation": "This statement is detached from reality and contains fantastical or impossible elements.",
             "laws": check_laws(statement)
         }
+    if "vaccines contain demons" in s:
+        return {
+            "echelon": "Misused Lie",
+            "subtype": "Conspiracy Theory",
+            "explanation": "This statement spreads a widely debunked conspiracy theory, lacking evidence and rational basis.",
+            "laws": check_laws(statement)
+        }
     if "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
@@ -49,12 +56,15 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
 
-    # Default result when no classification matches
-    return {
-        "echelon": "Truth",
-        "subtype": "Unspecified",
-        "explanation": "No specific classification matched. Statement may need reevaluation.",
-        "laws": check_laws(statement)
+    # Handle Neutral statements (meaningless input)
+    if not s.strip() or len(s.split()) < 2:
+        return {
+            "echelon": "Neutral",
+            "subtype": "Nonsense",
+            "explanation": "This statement is meaningless or too vague to classify into a truth or falsehood category.",
+            "laws": check_laws(statement)
+        }
+
     }
 
 
