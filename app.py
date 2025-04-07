@@ -96,14 +96,17 @@ statement = st.text_area("🗣️ Enter a public statement", value=st.session_st
 submit = st.button("🧪 Classify Statement")
 
 # Process input if button is clicked
+# Properly handle the result output after classification
 if submit and statement.strip():
     result = classify_statement(statement)
     st.success("✅ Classification Complete")
+    
     st.header("🔍 Result")
     st.markdown(f"**Echelon:** {result['echelon']}")
     st.markdown(f"**Subtype:** {result['subtype']}")
     st.markdown(f"**Explanation:** {result['explanation']}")
-    st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}") 
+    st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}")
+
 
     
     # Save the statement in session state to persist
