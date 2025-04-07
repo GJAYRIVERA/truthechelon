@@ -7,27 +7,33 @@ def check_laws(statement):
     laws_triggered = []
     s = statement.lower()
 
+    # LAW 1: Opinion statement ("I think", "I believe", etc.)
     if any(phrase in s for phrase in ["i think", "i believe", "in my opinion", "personally", "i feel"]):
         laws_triggered.append("LAW 1: Opinion Statement")
+    
+    # LAW 2: Question is being asked
     if statement.strip().endswith("?"):
         laws_triggered.append("LAW 2: Question Asked")
+    
+    # LAW 3: Repetition doesn't increase truth
     if "again and again" in s or "everyone says" in s:
         laws_triggered.append("LAW 3: Repetition Doesn't Increase Truth")
-    return laws_triggered if laws_triggered else ["None"]
+    
+    return laws_triggered if laws_triggered else []
 
 def classify_statement(statement):
     s = statement.lower()
     
-    # Check Obama is Muslim (misused lie)
+    # Misused Lie - Obama is Muslim
     if "obama is a muslim" in s:
         return {
             "echelon": "Misused Lie",
             "subtype": "Propaganda",
-            "explanation": "This statement is a widely spread falsehood masquerading as fact, aiming to manipulate public opinion.",
+            "explanation": "This statement disguises a disproven claim as opinion. It has been widely circulated in misinformation cycles.",
             "laws": check_laws(statement)
         }
     
-    # Earth is flat (scientifically false)
+    # Misused Lie - Earth is flat
     elif "earth is flat" in s:
         return {
             "echelon": "Misused Lie",
@@ -36,7 +42,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
-    # Check for fantastical statements like "i am a dragon" or "i gave birth to the moon"
+    # Absolute False - I am a dragon, or I gave birth to the moon
     elif "i am a dragon" in s or "i gave birth to the moon" in s:
         return {
             "echelon": "Absolute False",
@@ -45,7 +51,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
-    # Exaggerated Truth (like "capitalism is a weapon")
+    # Exaggerated Truth - Capitalism is a weapon
     elif "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
@@ -53,12 +59,39 @@ def classify_statement(statement):
             "explanation": "This exaggerates the relationship between fatigue and capitalism as a metaphor, amplifying the critique.",
             "laws": check_laws(statement)
         }
+
+    # Misused Lie - Vaccines contain demons (this should trigger as Misused Lie or Propaganda)
+    elif "vaccines contain demons" in s:
+        return {
+            "echelon": "Misused Lie",
+            "subtype": "Propaganda",
+            "explanation": "This is a false and dangerous claim often used in misinformation cycles.",
+            "laws": check_laws(statement)
+        }
+
+    # Basic Truth for statements about "my mom is my biological mom"
+    elif "my mom is my biological mom" in s:
+        return {
+            "echelon": "Basic Truth",
+            "subtype": "Factual Statement",
+            "explanation": "This is a basic truth about one's biological mother. Can be verified through biological testing.",
+            "laws": check_laws(statement)
+        }
+
+    # Absolute Truth - Statements that are universally verifiable, like "My mom gave birth to me."
+    elif "my mom gave birth to me" in s:
+        return {
+            "echelon": "Absolute Truth",
+            "subtype": "Historical Truth",
+            "explanation": "This statement is verifiable through historical or personal accounts.",
+            "laws": check_laws(statement)
+        }
     
-    # Default case if no specific classification matched
+    # Default case: Always return the closest possible echelon
     return {
         "echelon": "Truth",
-        "subtype": "Unspecified",
-        "explanation": "No specific classification matched. Statement may need reevaluation.",
+        "subtype": "Unspecified",  # Will refine this to a proper classification
+        "explanation": "Statement does not match a predefined classification. Needs reevaluation.",
         "laws": check_laws(statement)
     }
 
@@ -74,7 +107,9 @@ example_statements = [
     "I’m a dragon IRL",
     "Stealing food is moral",
     "Barack Obama is a Muslim",
-    "In my opinion, vaccines contain demons"
+    "In my opinion, vaccines contain demons",
+    "Earth is flat",
+    "Capitalism is a weapon"
 ]
 
 # Ensure session state stores the user's input and provide a default statement
