@@ -7,53 +7,53 @@ def check_laws(statement):
     laws_triggered = []
     s = statement.lower()
 
-    # Emotional framing
     if any(phrase in s for phrase in ["i think", "i believe", "in my opinion", "personally", "i feel"]):
-        laws_triggered.append("LAW 1")
-        laws_triggered.append("LAW 3")
-
-    # If the statement ends with a question
+        laws_triggered.append("LAW 1: Opinion Statement")
     if statement.strip().endswith("?"):
-        laws_triggered.append("LAW 6")
-
-    # If statement repeats a claim (repetition)
+        laws_triggered.append("LAW 2: Question Asked")
     if "again and again" in s or "everyone says" in s:
-        laws_triggered.append("LAW 7")
-
-    # Return law alerts, or None if no laws are triggered
+        laws_triggered.append("LAW 3: Repetition Doesn't Increase Truth")
     return laws_triggered if laws_triggered else ["None"]
 
 def classify_statement(statement):
     s = statement.lower()
-
-    # Check specific statements and classify accordingly
+    
+    # General classification logic based on patterns
     if "obama is a muslim" in s:
         return {
             "echelon": "Misused Lie",
             "subtype": "Propaganda",
-            "explanation": "This statement disguises a disproven claim as opinion. It has been widely circulated in misinformation cycles.",
+            "explanation": "This statement is a widely spread falsehood masquerading as fact, aiming to manipulate public opinion.",
             "laws": check_laws(statement)
         }
-
-    # Example of a fantasy claim
-    if "i am a dragon" in s or "i gave birth to the moon" in s:
+    
+    elif "the earth is flat" in s:
+        return {
+            "echelon": "Misused Lie",
+            "subtype": "Scientific Error",
+            "explanation": "This statement is scientifically false. The Earth has been proven to be round.",
+            "laws": check_laws(statement)
+        }
+    
+    # Check if it's a fantastical statement
+    elif "i am a dragon" in s or "i gave birth to the moon" in s:
         return {
             "echelon": "Absolute False",
             "subtype": "Fantasy Claim",
-            "explanation": "This statement is detached from reality and contains fantastical or impossible elements.",
+            "explanation": "This statement is detached from reality and is considered a fantasy claim.",
             "laws": check_laws(statement)
         }
-
-    # Exaggerated truths
-    if "capitalism is a weapon" in s:
+    
+    # Handle exaggerated metaphors like "capitalism is a weapon"
+    elif "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
             "subtype": "Cultural Metaphor",
-            "explanation": "This exaggerates a concept for rhetorical effect, tying fatigue to capitalism symbolically.",
+            "explanation": "This exaggerates the relationship between fatigue and capitalism as a metaphor, amplifying the critique.",
             "laws": check_laws(statement)
         }
 
-    # Default truth classification if no specific matches
+    # Default if no specific classification matched
     return {
         "echelon": "Truth",
         "subtype": "Unspecified",
@@ -67,6 +67,7 @@ st.set_page_config(page_title="Truth Echelon Framework", page_icon="🧠")
 st.title("🧠 Truth Echelon Framework")
 st.markdown("Classify any public statement by **structure**, **function**, **distortion**, and **legal framing** using the **Truth Echelon Framework**.")
 
+# Example statements with a rotation function
 example_statements = [
     "The sky is purple because of vibes",
     "I’m a dragon IRL",
@@ -75,32 +76,16 @@ example_statements = [
     "In my opinion, vaccines contain demons"
 ]
 
-# Pick a random statement to start with, if not previously entered
-if "input_text" not in st.session_state:
-    st.session_state.input_text = random.choice(example_statements)
-
-# Allow user to input their statement and check if button is clicked
-statement = st.text_area("🗣️ Enter a public statement", placeholder=st.session_state.input_text)
-
-# Classify button
+placeholder = random.choice(example_statements)
+statement = st.text_area("🗣️ Enter a public statement", placeholder=placeholder)
 submit = st.button("🧪 Classify Statement")
 
-# Process input if button is clicked
 if submit and statement.strip():
     result = classify_statement(statement)
-    
     st.success("✅ Classification Complete")
     st.header("🔍 Result")
     st.markdown(f"**Echelon:** {result['echelon']}")
     st.markdown(f"**Subtype:** {result['subtype']}")
     st.markdown(f"**Explanation:** {result['explanation']}")
     st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}")
-    
-    # Save the statement in session state to persist
-    st.session_state.input_text = statement
 
-# Button to get a new random example statement
-if st.button("Get New Example"):
-    new_example = random.choice(example_statements)
-    st.session_state.input_text = new_example  # Update session state with a new example
-    st.text_area("🗣️ Enter a public statement", value=new_example, height=100)
