@@ -1,120 +1,128 @@
+streamlit_app_with_limits = '''
 import streamlit as st
-import random
+import openai
+import os
+import json
+from datetime import datetime
 
-# ---- Echelon Framework Core (Simplified) ----
+# Set your OpenAI key from Streamlit Secrets
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-def check_laws(statement):
-    laws_triggered = []
-    s = statement.lower()
+# Constants
+PER_USER_LIMIT = 10
+GLOBAL_DAILY_LIMIT = 2500
+USAGE_TRACK_FILE = "usage_tracking.json"
 
-    # LAW 1 and LAW 3 for Opinion Statement
-    if any(phrase in s for phrase in ["i think", "i believe", "in my opinion", "personally", "i feel"]):
-        laws_triggered.append("LAW 1")  # Opinion statement
-        laws_triggered.append("LAW 3")  # Emotional framing law
-    
-    # LAW 6 for questions
-    if statement.strip().endswith("?"):
-        laws_triggered.append("LAW 6")
-    
-    # LAW 7 for repetitive statements or generalizations
-    if "again and again" in s or "everyone says" in s:
-        laws_triggered.append("LAW 7")
-    
-    return laws_triggered if laws_triggered else ["None"]
+# Load or initialize usage tracking
+def load_usage():
+    try:
+        with open(USAGE_TRACK_FILE, "r") as f:
+            data = json.load(f)
+    except:
+        data = {"date": str(datetime.today().date()), "global_count": 0}
+    return data
 
+def save_usage(data):
+    with open(USAGE_TRACK_FILE, "w") as f:
+        json.dump(data, f)
 
-def classify_statement(statement):
-    s = statement.lower()
+# Reset daily count if day has changed
+usage_data = load_usage()
+if usage_data["date"] != str(datetime.today().date()):
+    usage_data = {"date": str(datetime.today().date()), "global_count": 0}
+    save_usage(usage_data)
 
-    # Check for known problematic or special cases
-    if "obama is a muslim" in s:
-        return {
-            "echelon": "Misused Lie",
-            "subtype": "Propaganda",
-            "explanation": "This statement disguises a disproven claim as opinion. It has been widely circulated in misinformation cycles.",
-            "laws": check_laws(statement)
-        }
-    if "i am a dragon" in s or "i gave birth to the moon" in s:
-        return {
-            "echelon": "Absolute False",
-            "subtype": "Fantasy Claim",
-            "explanation": "This statement is detached from reality and contains fantastical or impossible elements.",
-            "laws": check_laws(statement)
-        }
-    if "vaccines contain demons" in s:
-        return {
-            "echelon": "Misused Lie",
-            "subtype": "Conspiracy Theory",
-            "explanation": "This statement spreads a widely debunked conspiracy theory, lacking evidence and rational basis.",
-            "laws": check_laws(statement)
-        }
-    if "capitalism is a weapon" in s:
-        return {
-            "echelon": "Exaggerated Truth",
-            "subtype": "Cultural Metaphor",
-            "explanation": "This exaggerates a concept for rhetorical effect, tying fatigue to capitalism symbolically.",
-            "laws": check_laws(statement)
-        }
+# Setup session state for per-user lock
+if "user_count" not in st.session_state:
+    st.session_state.user_count = 0
+if "locked" not in st.session_state:
+    st.session_state.locked = False
 
-    # Handle Neutral statements (meaningless input)
-    if not s.strip() or len(s.split()) < 2:
-        return {
-            "echelon": "Neutral",
-            "subtype": "Nonsense",
-            "explanation": "This statement is meaningless or too vague to classify into a truth or falsehood category.",
-            "laws": check_laws(statement)
-        }
-
-    
-
-
-# ---- UI ----
-
-st.set_page_config(page_title="Truth Echelon Framework", page_icon="🧠")
+st.set_page_config(page_title="Truth Echelon", layout="centered")
 st.title("🧠 Truth Echelon Framework")
-st.markdown("Classify any public statement by **structure**, **function**, **distortion**, and **legal framing** using the **Truth Echelon Framework**.")
+st.markdown("Classify any public statement by structure, function, and distortion using the **Truth Echelon Framework**.")
 
-# Example statements with a rotation function
-example_statements = [
-    "The sky is purple because of vibes",
-    "I’m a dragon IRL",
-    "Stealing food is moral",
-    "Barack Obama is a Muslim",
-    "In my opinion, vaccines contain demons",
-    "Earth is flat",
-    "Capitalism is a weapon"
-]
+# If user or global usage is maxed out
+if st.session_state.locked or st.session_state.user_count >= PER_USER_LIMIT:
+    st.error("🚫 You’ve reached your 10-statement limit on this device. Thank you for testing!")
+    st.stop()
 
-# Ensure session state stores the user's input and provide a default statement
-if "input_text" not in st.session_state:
-    st.session_state.input_text = random.choice(example_statements)
+if usage_data["global_count"] >= GLOBAL_DAILY_LIMIT:
+    st.error("🚫 Daily usage limit for this app has been reached. Please come back tomorrow.")
+    st.stop()
 
-# Allow user to input their statement and check if button is clicked
-statement = st.text_area("🗣️ Enter a public statement", value=st.session_state.input_text)
+# Input section
+statement = st.text_area("📣 Enter a public statement", placeholder="Type something like 'All women lie' or 'The Earth is flat'...", height=100)
+submit = st.button("🚀 Classify Statement")
 
-# Classify button
-submit = st.button("🧪 Classify Statement")
+# Prompt builder
+def build_prompt(statement):
+    return f\"""You are a Truth Classification Engine operating under the Truth Echelon Framework, a structural system for classifying public statements by function, distortion, and context.
 
-# Process input if button is clicked
-# Properly handle the result output after classification
-if submit and statement.strip():
-    result = classify_statement(statement)
-    st.success("✅ Classification Complete")
-    
-    st.header("🔍 Result")
-    st.markdown(f"**Echelon:** {result['echelon']}")
-    st.markdown(f"**Subtype:** {result['subtype']}")
-    st.markdown(f"**Explanation:** {result['explanation']}")
-    st.markdown(f"**Law Alert (if any):** {', '.join(result['laws'])}")
+Instructions:
+- Choose one of 12 Echelons.
+- Choose one approved Subtype (do not invent).
+- Give a short Explanation.
+- Optionally include Function if applicable.
+- Do not rename, modify, or invent echelon labels. Use only the official list.
+- Do not assign "Developmental Error" unless the speaker is clearly a child or exhibits cognitive delay.
+- Broad generalizations (e.g., “All women cheat”) = Misused Lie → Harmful Generalization.
+- Absurd or surreal statements (e.g., “My face is my butt”) = Absolute False.
+- Religious belief used in misinformation (e.g., “God said vaccines are evil”) = Misused Lie, not Moral Construct.
+
+Echelons:
+1. Absolute Truth
+2. Fixed Truth
+3. Basic Truth
+4. Truth
+5. Exaggerated Truth
+6. Moral Construct
+7. Neutral
+8. False
+9. White Lie
+10. Lie
+11. Misused Lie
+12. Absolute False
+
+Subtypes include:
+Propaganda, Emotional Amplification, Harmful Generalization, Religious Literalism, Symbolic Metaphor, Scientific Fact, Developmental Error, Cultural Metaphor, Play Claim, Logical Collapse, etc.
+
+Now classify this:
+
+Statement: "{statement}"
+\"""
 
 
-    
-    # Save the statement in session state to persist
-    st.session_state.input_text = statement
+if submit and statement.strip() != "":
+    with st.spinner("Classifying..."):
+        try:
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": build_prompt(statement)}],
+                temperature=0.4,
+                max_tokens=500
+            )
+            result = response.choices[0].message.content.strip()
+            st.success("✅ Classification Complete")
+            st.markdown(f"""
+### 🔍 Result  
+{result}
+""")
+            # Update session and global usage counters
+            st.session_state.user_count += 1
+            usage_data["global_count"] += 1
+            save_usage(usage_data)
+            if st.session_state.user_count >= PER_USER_LIMIT:
+                st.session_state.locked = True
+        except Exception as e:
+            st.error(f"Error: {e}")
+'''
 
-# Button to get a new random example statement
-if st.button("Get New Example"):
-    new_example = random.choice(example_statements)
-    st.session_state.input_text = new_example  # Update session state with a new example
-    st.text_area("🗣️ Enter a public statement", value=new_example, height=100)
+from pathlib import Path
+file_path = Path("/mnt/data/app_with_limits.py")
+file_path.write_text(streamlit_app_with_limits)
+
+"✅ Your upgraded app file with usage limits is ready! Download it below and upload to GitHub:"
+
+
 
