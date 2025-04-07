@@ -18,7 +18,7 @@ def check_laws(statement):
 def classify_statement(statement):
     s = statement.lower()
     
-    # General classification logic based on patterns
+    # Check Obama is Muslim (misused lie)
     if "obama is a muslim" in s:
         return {
             "echelon": "Misused Lie",
@@ -27,15 +27,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
-    elif "the earth is flat" in s:
-        return {
-            "echelon": "Misused Lie",
-            "subtype": "Scientific Error",
-            "explanation": "This statement is scientifically false. The Earth has been proven to be round.",
-            "laws": check_laws(statement)
-        }
-    
-    # Check if it's a fantastical statement
+    # Check for fantastical statements like "i am a dragon" or "i gave birth to the moon"
     elif "i am a dragon" in s or "i gave birth to the moon" in s:
         return {
             "echelon": "Absolute False",
@@ -44,7 +36,7 @@ def classify_statement(statement):
             "laws": check_laws(statement)
         }
     
-    # Handle exaggerated metaphors like "capitalism is a weapon"
+    # Check for exaggerated truths (e.g. "capitalism is a weapon")
     elif "capitalism is a weapon" in s:
         return {
             "echelon": "Exaggerated Truth",
@@ -52,8 +44,8 @@ def classify_statement(statement):
             "explanation": "This exaggerates the relationship between fatigue and capitalism as a metaphor, amplifying the critique.",
             "laws": check_laws(statement)
         }
-
-    # Default if no specific classification matched
+    
+    # Default case if no specific classification matched
     return {
         "echelon": "Truth",
         "subtype": "Unspecified",
@@ -76,6 +68,7 @@ example_statements = [
     "In my opinion, vaccines contain demons"
 ]
 
+# Choose a random placeholder from the list of examples
 placeholder = random.choice(example_statements)
 statement = st.text_area("🗣️ Enter a public statement", placeholder=placeholder)
 submit = st.button("🧪 Classify Statement")
