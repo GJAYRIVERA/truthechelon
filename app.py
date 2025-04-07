@@ -1,4 +1,3 @@
-
 def build_prompt(statement):
     return f"""You are the official classifier for the Truth Echelon Framework, a structural typology for public statements.
 
